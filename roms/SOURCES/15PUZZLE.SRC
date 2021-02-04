@@ -1,0 +1,340 @@
+; From: SLSW2@cc.usu.edu (Roger Ivie)
+;
+; Here's PUZZLE.SRC, the infamous "15" puzzle for the calculator. I'm including
+; it mainly as an example of how to use my CHIP8 macros.
+;
+; When running PUZZLE, the 4x4 keyboard area used by CHIP8 corresponds to the
+; screen in the obvious manner. Simply press the key corresponding to the
+; location that you want the hole to be moved and it will migrate there. The
+; hole is moved up, down, left, then right until it winds up at the requested
+; location.
+;
+; Once the program is started, pressing ENTER randomizes the board (the magic
+; of self-modifying code).
+;
+; The program has absolutely no idea whether or not you've solved the puzzle,
+; so it doesn't do anything special.
+;
+; Enjoy,
+;
+; Roger Ivie
+; slsw2@cc.usu.edu
+;
+; PS: I'll post a binary as soon as I can get to my local Unix box again (the
+; hardware hackers have taken over).
+
+
+; Register usage:
+;
+; V0 - Used to grab things from memory
+; V1 - Current piece to be displayed
+; V2 - X coordinate where it is to be displayed
+; V3 - Y coordinate where it is to be displayed
+; V4 - General work; new hole position for swap_hole
+; V5 - General work
+; V6 -
+; V7 -
+; V8 -
+; V9 -
+; VA -
+; VB -
+; VC - Number of random moves to insert into the puzzle
+; VD - Desired position of the hole
+; VE - Current position of the hole
+; VF -
+
+
+option binary
+align off
+
+	CLS
+
+START:
+    LD  VC, 0
+    SNE VC, 0
+    DB #6E      ; 6E0F -> VE = 15: number of moves to randomize
+START+1:
+    DB  #0F
+    LD  I, START+1  ; Plug the number of moves to randomize
+    LD  V0, 32
+    LD  [I], V0
+    CLS             ; Clear the screen
+
+LOOP:
+	CALL GET_MOVE
+	CALL MOVE_UP
+	CALL MOVE_DOWN
+	CALL MOVE_LEFT
+	CALL MOVE_RIGHT
+    JP LOOP
+
+;------------------
+
+XSTART  EQU 23                          ; Horizontal position of board
+YSTART  EQU 4                           ; Vertical position of board
+XOFF    EQU 5                           ; Horizontal offset to next piece
+YOFF    EQU 6                           ; Vertical offset to next piece
+
+DISPLAY:
+
+; State 1: Initialize everything to be about the first piece on the board
+; and go to state 2.
+
+DISPLAY_1:
+	LD V1,0
+	LD V2,XSTART
+	LD V3,YSTART
+
+; State 2: If all pieces have been displayed, exit. Otherwise, go to state 3.
+
+DISPLAY_2:
+    SNE V1, #10
+	RET
+
+; State 3: Get the next piece to be displayed. If it's the hole (and therefore
+; shouldn't be displayed), go to state 5. Otherwise go to state 4.
+
+DISPLAY_3:
+	LD I,BOARD
+	ADD I,V1
+    LD V0,[I]
+    SNE V0,0
+    JP DISPLAY_5
+
+; State 4: Display the current piece and go to state 5.
+
+DISPLAY_4:
+    LD  F,  V0
+    DRW V2,V3,5
+
+; State 5: Advance the piece pointer and the horizontal position of the
+; display to the next piece. If the new piece is the first in a new row,
+; go to state 6. Otherwise go to state 2.
+
+DISPLAY_5:
+	ADD V1,1
+	ADD V2,XOFF
+	LD V4,3
+	AND V4,V1
+    SE V4,0
+    JP DISPLAY_2
+
+; State 6: The piece is the first of a new row. Reinitialize the horizontal
+; position to the first of the row and advance the vertical position to the
+; next row. Go to state 2.
+
+DISPLAY_6:
+	LD V2,XSTART                    ; Start at beginning of next row.
+	ADD V3,YOFF
+    JP DISPLAY_2
+
+;-------
+
+MOVE_RIGHT:
+
+; State 1: Check to see if the desired hole position and the current hole
+; position are in the same column. If so, exit. Otherwise, go to state 2.
+
+MOVE_RIGHT_1:
+	LD V4,3                 ; Get horizontal position of hole
+	AND V4,VE
+	LD V5,3                 ; Get horizontal position of new hole
+	AND V5,VD
+    SNE V4,V5
+	RET
+
+; State 2: If the hole cannot be moved any farther right, exit. Otherwise
+; go to state 3.
+
+MOVE_RIGHT_2:
+    SNE V4,3
+	RET
+
+; State 3: Move the hole right one position and go back to state 1.
+
+MOVE_RIGHT_3:
+	LD V4,1
+	ADD V4,VE
+	CALL SWAP_HOLE
+    JP MOVE_RIGHT_1
+
+;-------
+
+MOVE_LEFT:
+
+; State 1: Check to see if the desired hole position and the current hole
+; position are in the same column. If so, exit. Otherwise, go to state 2.
+
+MOVE_LEFT_1:
+	LD V4,3         ; Get horizontal position of hole
+	AND V4,VE
+	LD V5,3         ; Get horizontal position of new hole
+	AND V5,VD
+    SNE V4,V5
+	RET
+
+; State 2: If the hole cannot be moved any farther left, exit. Otherwise
+; go to state 3.
+
+MOVE_LEFT_2:
+    SNE V4,0
+	RET
+
+; State 3: Move the hole left one position and go back to state 1.
+
+MOVE_LEFT_3:
+    LD V4, #FF  ; <LOW -1>
+	ADD V4,VE
+	CALL SWAP_HOLE
+    JP MOVE_LEFT_1
+
+;-------
+
+MOVE_UP:
+
+; State 1: Check to see if the desired hole position and the current hole
+; position are in the same row. If so, exit. Otherwise, go to state 2.
+
+MOVE_UP_1:
+    LD V4, #0C               ; Get vertical position of hole
+	AND V4,VE
+    LD V5, #0C               ; Get vertical position of new hole
+	AND V5,VD
+    SNE V4,V5
+	RET
+
+; State 2: If the hole cannot be moved any farther up, exit. Otherwise
+; go to state 3.
+
+MOVE_UP_2:
+    SNE V4,0
+	RET
+
+; State 3: Move the hole up one position and go back to state 1.
+
+MOVE_UP_3:
+    LD V4, #FC  ;<LOW -4>          Up = left 4
+	ADD V4,VE
+	CALL SWAP_HOLE
+    JP MOVE_UP_1
+
+;-------
+
+MOVE_DOWN:
+
+; State 1: Check to see if the desired hole position and the current hole
+; position are in the same row. If so, exit. Otherwise, go to state 2.
+
+MOVE_DOWN_1:
+    LD V4, #0C               ; Get vertical position of hole
+	AND V4,VE
+    LD V5, #0C               ; Get vertical position of new hole
+	AND V5,VD
+    SNE V4,V5
+	RET
+
+; State 2: If the hole cannot be moved any farther down, exit. Otherwise
+; go to state 3.
+
+MOVE_DOWN_2:
+    SNE V4, #0C
+	RET
+
+; State 3: Move the hole down one position and go back to state 1.
+
+MOVE_DOWN_3:
+	LD V4,4                 ; Down = right 4
+	ADD V4,VE
+	CALL SWAP_HOLE
+    JP MOVE_DOWN_1
+
+;-------
+
+SWAP_HOLE:
+	LD I,BOARD              ; Get the piece at the new hole position
+	ADD I,V4
+    LD V0,[I]
+	LD I,BOARD              ; Put it at the old hole position
+	ADD I,VE
+    LD [I],V0
+	LD V0,0                 ; Put a hole...
+	LD I,BOARD              ; ...at the new hole position
+	ADD I,V4
+    LD [I],V0
+	LD VE,V4                ; Move the hole marker to the new position
+	RET
+
+;-------
+
+GET_MOVE:
+
+; State 1: Check to see if there are any more random moves to select. If so,
+; go to state 5. Otherwise go to state 2.
+GET_MOVE_1:
+    SE VC,0
+    JP GET_MOVE_5
+
+; State 2: Prompt for and obtain a keystroke: display the board, wait for
+; a keystroke, and then erase the board. Go to state 4.
+
+GET_MOVE_2:
+	CALL DISPLAY
+	CALL MYKEY
+	CALL DISPLAY
+
+; State 3: <deleted>
+
+; State 4: Translate the keystroke to the new hole position and exit.
+
+GET_MOVE_4:
+	LD I,KEYTABLE
+	ADD I,VD
+    LD V0,[I]
+	LD VD,V0
+	RET
+
+; State 5: Decrement the count of random moves remaining, select a random
+; hole position, and exit.
+
+GET_MOVE_5:
+    ADD VC, #FF ;<LOW -1>
+    RND VD, #0F
+	RET
+
+;-------
+
+MYKEY:
+
+; State 1: Continuously scan the keyboard until a key is pressed. When a
+; key is pressed, go to state 2.
+
+MYKEY_1:
+	ADD VD,1                ; Advance to next key number.
+    LD V0, #0F               ; Make certain that it's not bigger than 0FH
+	AND VD,V0
+    SKP VD              ; If this key is down, go to state 2.
+    JP MYKEY_1            ; Otherwise stay in state 1.
+
+; State 2: Wait for the key to be released. When it is, exit.
+
+MYKEY_2:
+    SKNP VD
+    JP MYKEY_2
+	RET
+
+;-------
+
+; The puzzle board
+
+BOARD:
+	DB 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0
+
+; Translation table from key number to hole position
+
+KEYTABLE:
+    DB #0D, #00, #01, #02
+    DB #04, #05, #06, #08
+    DB #09, #0A, #0C, #0E
+    DB #03, #07, #0B, #0F
+
+	END

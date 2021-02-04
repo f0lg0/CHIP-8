@@ -1,0 +1,83 @@
+Joust 1.0, a CHIP48 game by Zoom:
+
+	Hoorah! Hoorah!  Here it is, the latest CHIP48 game; my rendition
+of the arcade game Joust.  Both ->ASC and UUENCODE versions are attached.
+
+You can get ASC-> (an HP48sx program by Bill Wickes) by anonymous ftp
+at seq.uncwil.edu (Wayne Scott's Mailserver archive, 
+path:  hp48/util/ascii.encode.Z (set ftp to binary, use UNCOMPRESS in UNIX).
+
+A PC based version of UUDECODE is available on the HPBBS in the 
+user.programs conference.
+
+CHIP48v2.25 and documentation is available at seq.uncwil.edu
+path:  hp48/chip8/chip-48.Z (binary)
+
+The Game:
+
+	1)  Download the file and use ASC-> on the string.
+	2)  The result of step 1 is taken as an argument by
+	    CHIP, this runs the game.
+        3)  Check out the title screen then press 0 to play.
+        4)  The keys are:
+
+                       0 = Down
+                       9 = Left
+                       / = Right
+
+	5)  The blank dots in the bottom left corner indicate
+	    the number of players left, not including the current
+	    player.  Sorry, no bonus guys.  Maybe in the future.
+
+        6)  At the score screen press 0 to replay, else press drop
+            to exit to the stack.
+
+
+If you feel the game is slow, then wait until you get to level 7!
+The levels roll over at #Fh, I think.  I haven't gotten that far!
+Therefore there maybe unseen bugs.
+
+The game is novel.  I'm not sure of its lasting qualities.
+However, it was a good exercise in CHIP programming.  Which
+reminds me:
+
+  - I claim no rights, its just a game.  Anyway, what could I do?
+    Send the cops after you?  On the other hand, please send me
+    email for comments, questions, bugs.  On bugs, try to give
+    plenty of detail.  Debugging these games is a nightmare, but
+    its a challenge I enjoy (contradiction?).
+
+    my email address:  catto@ecn.purdue.edu
+
+    You can post on comp.sys.handhelds, but I only view once or
+    twice a week.
+
+CREDITS:
+
+    1)  Andreas Gustafsson for his excellent interpreter, CHIP48v2.25.
+    2)  Gilles Kohl for his AS48 CHIP assembler.
+
+I haven't tried to run Joust on SuperCHIP.  If I have enough energy I
+will convert Joust to take advantage of the extended graphics.
+
+On Source Code:
+
+I will eventually post source code in AS48, soon if requested.  I will
+archive it at seq.uncwil.edu and the HPBBS along with Joust.
+
+However, I am more interested in posting some CHIP48 programming notes
+to generate more interest in actually writing these games.  This is the
+fifth game posted since CHIP's release, how many assemblers?  Assemblers
+are great and Joust wouldn't have been possible without one, but I think
+people must have difficulty programming in CHIP48 (it wasn't a cinch for
+me).  Sooooo, I will try to help with some programming notes.
+
+                         Enjoy!
+
+                         Zoom->
+
+The real question:  Should I by a Smith Corona card?
+
+
+Joust string:  Bytes:  1426
+               Checksum:  #87F2h 

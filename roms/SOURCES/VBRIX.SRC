@@ -1,0 +1,371 @@
+; ****************************************************************************
+; ****************************************************************************
+; ***               Vertical Brix v1.0 (C) Paul Robson 1996                ***
+; ****************************************************************************
+; ****************************************************************************
+
+; ****************************************************************************
+;
+;       r7      lives
+;       r8      score
+;       r9      bat y
+;       ra,rb   location of ball
+;       rc,rd   direction of ball
+;       re      Number of brix remaining in wall
+;
+; ****************************************************************************
+
+TopLine:equ     0                       ; top line of breakout
+BottomLine:equ  31                      ; bottom line of breakout
+LeftSide:equ    0                       ; left side of game area
+RightSide:equ   63                      ; right side of game area
+BrickX:equ      34                      ; brick start
+BrickXCt:equ    7                       ; number of bricks across , x
+BrickYCt:equ    10                      ; and y
+BatX:   equ     2                       ; bat x position
+Sound:  equ     1                       ; 1 sound,0 nosound
+KeyUp:  equ     1                       ; up key
+KeyDown:equ     4                       ; down key
+KeyStart:equ    7                       ; start key
+
+        cls
+        jsr Title
+wstart:
+        mov v0,KeyStart                 ; wait for start
+        skpr v0
+        jmp  wstart
+
+begin:  mov r8,0                        ; score = 0
+        mov r7,3                        ; lives = 3
+        jsr DrawBorder
+        jsr InitBat
+        jsr InitBall
+        jsr DrawBricks
+        jsr DrawScore
+        jsr DrawLives
+        key v0
+loop:   jsr MoveBat
+        jsr MoveBat
+        jsr MoveBall
+        jsr Collide
+        skeq ra,0
+        jmp loop
+
+        mov rc,1                        ; ball back out
+        jsr DrawLives                   ; dec lives
+        add r7,-1
+        jsr DrawLives
+
+        mov r0,120                      ; wait 2 secs
+        sdelay r0
+wait:   gdelay r0
+        skeq r0,0
+        jmp  wait
+
+        skeq r7,0
+        jmp  loop
+        jsr DrawLives                   ; erase lives,we've finished
+
+        mov r0,KeyStart
+        skpr r0
+        jmp .-2
+        jmp begin
+        halt
+
+; ****************************************************************************
+; ***                         initialise the bat                           ***
+; ****************************************************************************
+InitBat:mov     r9,16
+        mov     v0,BatX
+        mvi     BatSpr
+        sprite  v0,v9,5
+        rts
+BatSpr: db      $10000000
+        db      $10000000
+        db      $10000000
+        db      $10000000
+        db      $10000000
+; ****************************************************************************
+; ***                            move the bat                              ***
+; ****************************************************************************
+MoveBat:mov     r0,KeyUp
+        skup    r0
+        jmp     MoveUp
+        mov     r0,KeyDown
+        skup    r0
+        jmp     MoveDown
+        rts
+
+MoveUp: mov     r0,r9                   ; move it up
+        add     r0,-1
+        skne    r0,TopLine
+        rts
+        jmp     MoveIt
+MoveDown:
+        mov     r0,r9                   ; move it down
+        add     r0,1
+        skne    r0,BottomLine-4
+        rts
+        jmp     MoveIt
+MoveIt: mov     r1,BatX                 ; redraw the graphic
+        mvi     BatSpr
+        sprite  r1,r9,5
+        sprite  r1,r0,5
+        mov     r9,r0                   ; do the move
+        rts
+
+; ****************************************************************************
+; ***                      has the bat hit the ball                        ***
+; ****************************************************************************
+Collide:mov     v0,va                   ; va (x) must be batx
+        add     v0,-2
+        skeq    v0,0
+        rts
+        mov     v0,vb                   ; v0 = bally-baty
+        sub     v0,v9
+        skne    vf,0                    ; if bally < baty exit
+        rts
+        mov     v1,v0                   ; if v0 >= 5 exit
+        mov     v2,5
+        sub     v1,v2
+        skeq    vf,0
+        rts
+        mvi     dirtab                  ; get the new y direction
+        adi     v0                      ; out of the table
+        ldr     v0-v0
+        mov     vd,v0
+
+        skne    vb,TopLine+1
+        mov     vd,1
+        skne    vb,BottomLine-1
+        mov     vd,-1
+
+        mov     rc,1                    ; bounce back out
+        mov     r0,10*sound
+        ssound  r0
+        rts
+dirtab: db      -1,-1,0,1,1
+; ****************************************************************************
+; ***                    initialise the ball register                      ***
+; ****************************************************************************
+InitBall:
+        random  vb,BottomLine-TopLine-1
+        add     rb,TopLine+1
+        mov     va,4
+        mov     vc,1
+        mov     vd,1
+        mvi     Pixel
+        sprite  va,vb,1
+        rts
+; ****************************************************************************
+; ***                move the ball,bouncing off the walls                  ***
+; ***                       destroys v0,v1,v2,v3,v4                        ***
+; ****************************************************************************
+MoveBall:
+        mov     v0,va                   ; save position in va,vb
+        mov     v1,vb
+        add     va,vc                   ; work out new position
+        add     vb,vd
+        mvi     Pixel
+        skne    vb,TopLine+1            ; bounce off the walls
+        mov     vd,1
+        skne    vb,BottomLine-1
+        mov     vd,-1
+        skne    va,RightSide-1
+        mov     vc,-1
+
+        skne    va,0                    ; DEBUGGING,NO LOSS OF BALL
+        mov     vc,1
+
+        sprite  v0,v1,1                 ; Draw the ball,delete old ball
+        sprite  va,vb,1
+        skne    vf,0                    ; ball has hit something - stop
+        rts
+        mov     v0,va                   ; if hit the bat,pass !
+        mov     v1,brickx-1              ; if < brickx forget it !
+        sub     v0,v1
+        skne    vf,0
+        rts
+        mov     v0,va                   ; ball position in v0,v1
+        mov     v1,vb
+        add     v0,-brickx              ; convert to ball coordinate
+        add     v1,-topline-1
+        mov     v2,-1                   ; v2,v3 will be the ball location
+        mov     v3,-1                   ; in logical coordinates.
+        mov     v4,3
+div3x:  add     v2,1                    ; divide v0 by 3
+        sub     v0,v4
+        skeq    vf,0
+        jmp     div3x
+div3y:  add     v3,1
+        sub     v1,v4
+        skeq    vf,0
+        jmp     div3y
+        mov     v0,v2                   ; v0,v1 contain the ball coords (log)
+        mov     v1,v3
+        add     v0,v2                   ; convert them to physical coords
+        add     r0,r2
+        add     v1,v3
+        add     v1,v3
+        add     v0,BrickX
+        add     v1,TopLine+1
+        mvi     Brick                   ; erase the brick
+        sprite  v0,v1,3
+        add     ve,-1                   ; decrement bricks remaining counter
+        mov     v0,0                    ; bounce the ball
+        rsb     vc,v0                   ; xi = -xi
+        mov     r0,2*sound
+        ssound  r0
+        jsr     DrawScore               ; increment the score
+        add     v8,1
+        jsr     DrawScore
+        skeq    ve,0                    ; cleared the wall ?
+        rts
+        jsr     DrawBricks              ; redraw it
+        rts
+
+; ****************************************************************************
+; ***                           Draw the border                            ***
+; ***                         destroys r0,r1,r2,i                          ***
+; ****************************************************************************
+DrawBorder:
+        cls                             ; start with a clear screen
+        mov     v0,LeftSide             ; (r0,r1) and (r0,r2) are start pos
+        mov     v1,TopLine              ; of the horizontal lines
+        mov     v2,BottomLine
+        mvi     Pixel
+DBLoop: sprite  v0,v1,1                 ; draw the vertical lines
+        sprite  v0,v2,1
+        add     v0,1
+        skeq    v0,RightSide
+        jmp     DBLoop
+DBLoop2:sprite  v0,v1,1                 ; draw the horizontal lines
+        add     v1,1
+        skeq    v1,BottomLine+1
+        jmp     DBLoop2
+        rts
+Pixel:  db      $10000000                ; pixel used for drawing walls.
+; ****************************************************************************
+; ***                        redraw all the bricks                         ***
+; ***                       destroys r0,r1,r2,r3,i                         ***
+; ****************************************************************************
+DrawBricks:
+        mov     v1,TopLine+1
+        mov     v3,BrickYCt
+        mvi     Brick
+DBXLoop:mov     v0,BrickX
+        mov     v2,BrickXCt
+DBXLp2: sprite  v0,v1,3
+        add     v0,3
+        add     v2,-1
+        skeq    v2,0
+        jmp     DBXLp2
+        add     v1,3
+        add     v3,-1
+        skeq    v3,0
+        jmp     DBXLoop
+        mov     ve,BrickXCt*BrickYCt
+        rts
+Brick:  db      $11100000
+        db      $10100000
+        db      $11100000
+; ****************************************************************************
+; ***                       Draw the score (in r8)                         ***
+; ****************************************************************************
+DrawScore:
+        mvi     Temp
+        bcd     v8
+        ldr     v0-v2
+        mov     v3,3
+        mov     v4,TopLine+2
+        font    v0
+        sprite  v3,v4,5
+        add     v3,5
+        font    v1
+        sprite  v3,v4,5
+        add     v3,5
+        font    v2
+        sprite  v3,v4,5
+        rts
+Temp:   dw 0,0,0
+; ****************************************************************************
+; ***                      draw the number of lives                        ***
+; ****************************************************************************
+DrawLives:
+        mov     r0,20
+        mov     r1,TopLine+2
+        font    r7
+        sprite  r0,r1,5
+        rts
+; ****************************************************************************
+; ***                           draw the title                             ***
+; ****************************************************************************
+Title:  mov     r0,10
+        mov     r1,12
+        mov     r2,9
+        mov     r3,5
+        mvi     TitleSpr
+TtlLoop:sprite  r0,r1,5
+        adi     r3
+        add     r0,5
+        add     r2,-1
+        skeq    r2,0
+        jmp     TtlLoop
+        rts
+TitleSpr:
+        db      $10010000
+        db      $10010000
+        db      $10010000
+        db      $10010000
+        db      $01100000
+
+        db      $11100000
+        db      $10010000
+        db      $11100000
+        db      $10010000
+        db      $11100000
+
+        db      $11100000
+        db      $10010000
+        db      $11100000
+        db      $10010000
+        db      $10010000
+
+
+        db      $00100000
+        db      $00100000
+        db      $00100000
+        db      $00100000
+        db      $00100000
+
+        db      $10010000
+        db      $10010000
+        db      $01100000
+        db      $10010000
+        db      $10010000
+
+        db      $00000000
+        db      $00000000
+        db      $01100000
+        db      $00000000
+        db      $00000000
+
+        db      $11110000
+        db      $10010000
+        db      $11110000
+        db      $10000000
+        db      $10000000
+
+        db      $11110000
+        db      $10000000
+        db      $11110000
+        db      $00010000
+        db      $11110000
+
+        db      $11100000
+        db      $10010000
+        db      $11100000
+        db      $10010000
+        db      $10010000
+
+

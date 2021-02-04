@@ -1,0 +1,124 @@
+option binary
+align off
+
+     LD   I,  l2CD
+     LD   V9,  #38
+     LD   VA,  #08
+     DRW  V9,  VA, 3
+     LD   I,  l2D0
+     LD   VB,  #00
+     LD   VC,  #03
+     DRW  VB,  VC, 3
+     LD   I,  l2D6
+     LD   V4,  #1D
+     LD   V5,  #1F
+     DRW  V4,  V5, 1
+     LD   V7,  #00
+     LD   V8,  #0F
+     CALL l2A2
+l21E:  CALL l2AC
+     SNE  V8,  #00
+l222:  JP  l222
+     LD   V4,  #1E
+     LD   V5,  #1C
+     LD   I,  l2D3
+     DRW  V4,  V5, 3
+     LD   VE,  #00
+l22E:  LD   V6,  #80
+     LD   VD,  #04
+     SKNP VD
+     LD   V6,  #FF
+     LD   VD,  #05
+     SKNP VD
+     LD   V6,  #00
+     LD   VD,  #06
+     SKNP VD
+     LD   V6,  #01
+     SE   V6,  #80
+     CALL l2D8
+l246:  LD   I,  l2D0
+     DRW  VB,  VC, 3
+     RND  VD,  #01
+     ADD  VB,  VD
+     DRW  VB,  VC, 3
+     SE   VF,  #00
+     JP  l292
+     LD   I,  l2CD
+     DRW  V9,  VA, 3
+     RND  VD,  #01
+     SE   VD,  #00
+     LD   VD,  #FF
+     ADD  V9,  #FE
+     DRW  V9,  VA, 3
+     SE   VF,  #00
+     JP  l28C
+     SNE  VE,  #00
+     JP  l22E
+     LD   I,  l2D3
+     DRW  V4,  V5, 3
+     SNE  V5,  #00
+     JP  l286
+     ADD  V5,  #FF
+     ADD  V4,  V6
+     DRW  V4,  V5, 3
+     SE   VF,  #01
+     JP  l246
+     LD   VD,  #08
+     AND  VD,  V5
+     SNE  VD,  #08
+     JP  l28C
+     JP  l292
+l286:  CALL l2AC
+     ADD  V8,  #FF
+     JP  l21E
+l28C:  CALL l2A2
+     ADD  V7,  #05
+     JP  l296
+l292:  CALL l2A2
+     ADD  V7,  #0F
+l296:  CALL l2A2
+     LD   VD,  #03
+     LD   ST,  VD
+     LD   I,  l2D3
+     DRW  V4,  V5, 3
+     JP  l286
+l2A2:  DW #A2F8     ;LD   I,  l2F8 as we cannot load an effective address
+     LD   B,   V7
+     LD   V3,  #00
+     CALL l2B6
+     RET
+l2AC:  DW #A2F8     ;LD   I,  l2F8 as we cannot load an effective address
+     LD   B,   V8
+     LD   V3,  #32
+     CALL l2B6
+     RET
+l2B6:  LD   VD,  #1B
+     LD   V2,  [I]
+     LD   F,   V0
+     DRW  V3,  VD, 5
+     ADD  V3,  #05
+     LD   F,   V1
+     DRW  V3,  VD, 5
+     ADD  V3,  #05
+     LD   F,   V2
+     DRW  V3,  VD, 5
+     RET
+     DB #01
+l2CD:     DB #7C        ; .11111..
+     DB #FE             ; 1111111.
+     DB #7C             ; .11111..
+l2D0:
+       DB  #60          ;.11.....
+       DB  #F0          ;1111....
+       DB  #60          ;.11.....
+
+l2D3:  DB  #40          ;.1......
+       DB  #E0          ;111.....
+       DB  #A0          ;1.1.....
+
+l2D6:  DB   #F8         ;11111...
+       DB   #D4         ;11.1.1..
+l2D8:  LD   VE,  #01
+     LD   VD,  #10
+     LD   ST,  VD
+     RET
