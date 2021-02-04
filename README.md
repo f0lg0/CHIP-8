@@ -1,6 +1,6 @@
 # CHIP-8 Emulator
 
-A simple emulator for the CHIP-8 interpreted programming language running on a CHIP-8 virtual machine written in C (SDL for graphics)
+A simple emulator for the CHIP-8 interpreted programming language written in C (SDL for graphics).
 
 ## About
 
@@ -21,7 +21,12 @@ Or you could use the `test_emu` script I wrote to automate the process of testin
 By reading [here](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.1):
 
 ```
-Chip-8 is a simple, interpreted, programming language which was first used on some do-it-yourself computer systems in the late 1970s and early 1980s. The COSMAC VIP, DREAM 6800, and ETI 660 computers are a few examples. These computers typically were designed to use a television as a display, had between 1 and 4K of RAM, and used a 16-key hexadecimal keypad for input. The interpreter took up only 512 bytes of memory, and programs, which were entered into the computer in hexadecimal, were even smaller
+Chip-8 is a simple, interpreted, programming language which was first used
+on some do-it-yourself computer systems in the late 1970s and early 1980s.
+The COSMAC VIP, DREAM 6800, and ETI 660 computers are a few examples.
+These computers typically were designed to use a television as a display
+had between 1 and 4K of RAM, and used a 16-key hexadecimal keypad for input.
+The interpreter took up only 512 bytes of memory, and programs, which were entered into the computer in hexadecimal, were even smaller
 ```
 
 So this emulator replicates this behaviour by creating a virtual machine with the following specs:
