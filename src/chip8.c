@@ -155,20 +155,10 @@ int check_rom(char* filename) {
 void load_rom(char* filename) {
     FILE* fp = fopen(filename, "rb");
 
-    // get file size
-    fseek(fp, 0, SEEK_END);
-    long buf_len = ftell(fp);
-    rewind(fp);
+    // read program size into memory
+    fread(memory + 0x200, 1, sizeof(memory) - 0x200, fp);
 
-    char* buf = malloc((buf_len + 1) * sizeof(char));
-    fread(buf, buf_len, 1, fp);
     fclose(fp);
-
-    for (int i = 0; i < buf_len; i++) {
-        memory[0x200 + i] = buf[i];
-    }
-
-    free(buf);
 }
 
 /**
