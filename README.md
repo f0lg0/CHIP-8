@@ -6,6 +6,13 @@ A simple emulator for the CHIP-8 interpreted programming language written in C (
 
 This is a really basic emulator written for educational purposes, the code is meant to be readable and clear, with a lot of comments. I am a beginner in this field and this is my first attempt to emulators. I have implemented this project mainly by following the [Wikipedia page](https://en.wikipedia.org/wiki/CHIP-8) and [this](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.1) awesome resource; I had no experience with SDL either so I have helped myself during that process with various resources online. **The most important part to me was understanding the architecture itself, not the graphics**.
 
+## Requirements
+
+This project has been developed under a Linux system.
+
+-   SDL library
+-   C compiler
+
 ## Run
 
 `make`
