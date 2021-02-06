@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define debug_print(fmt, ...)                         \
@@ -127,9 +128,7 @@ void init_cpu(void) {
     srand((unsigned int)time(NULL));
 
     // load fonts into memory
-    for (int i = 0; i < 80; i++) {
-        memory[i] = fontset[i];
-    }
+    memcpy(memory, fontset, sizeof(fontset));
 }
 
 /**
