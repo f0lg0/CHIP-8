@@ -16,8 +16,7 @@ extern unsigned char draw_flag;
 extern unsigned char sound_flag;
 
 void init_cpu(void);
-int check_rom(char* filename);
-void load_rom(char* filename);
+int load_rom(char* filename);
 void emulate_cycle(void);
 
 #endif

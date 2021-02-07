@@ -1,5 +1,8 @@
+#define _XOPEN_SOURCE 500
+
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "inc/chip8.h"
 #include "inc/peripherals.h"
@@ -17,12 +20,16 @@ int main(int argc, char** argv) {
     char* rom_filename = argv[1];
     printf("[PENDING] Loading rom %s...\n", rom_filename);
 
-    if ((check_rom(rom_filename) == 1)) {
-        printf("[FAILED] Errors while loading rom!\n");
+    int status = load_rom(rom_filename);
+
+    if (status == -1) {
+        printf("[FAILED] fread() failure: the return value was not equal to the rom file size.\n");
+        return 1;
+    } else if (status != 0) {
+        perror("Error while loading rom");
         return 1;
     }
 
-    load_rom(rom_filename);
     printf("[OK] Rom loaded successfully!\n");
 
     init_display();

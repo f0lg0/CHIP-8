@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 #define debug_print(fmt, ...)                         \
     do {                                              \
@@ -11,6 +13,8 @@
     } while (0)
 
 int DEBUG = 1;
+extern int errno;
+
 /*
  * Memory map:
  *
@@ -131,33 +135,30 @@ void init_cpu(void) {
     memcpy(memory, fontset, sizeof(fontset));
 }
 
-/**
- * check_rom: check if provided rom is accessible
- * @param filename The rom filename
- * @return 0 if success, 1 if fail
- * */
-int check_rom(char* filename) {
-    FILE* fp;
-
-    if ((fp = fopen(filename, "rb"))) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
 
 /**
  * load_rom: load the provided rom to memory
  * @param filename The rom filename
- * @return void
+ * @return 0 if success, -1 if fread failure, errno if failure
  * */
-void load_rom(char* filename) {
+int load_rom(char* filename) {
     FILE* fp = fopen(filename, "rb");
 
-    // read program size into memory
-    fread(memory + 0x200, 1, sizeof(memory) - 0x200, fp);
+    if (fp == NULL) return errno;
 
+    struct stat st;
+    stat(filename, &st);
+    size_t fsize = st.st_size;
+
+    size_t bytes_read = fread(memory + 0x200, 1, sizeof(memory) - 0x200, fp);
+
+    if (bytes_read != fsize) {
+        return -1;
+    }
+   
     fclose(fp);
+
+    return 0;
 }
 
 /**
