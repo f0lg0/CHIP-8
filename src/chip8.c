@@ -599,7 +599,7 @@ void emulate_cycle(void) {
                     debug_print("[OK] 0x%X: FX55\n", op);
 
                     for (int i = 0; i <= x; i++) {
-                        V[i] = memory[I + i];
+                        memory[I + i] = V[i];
                     }
 
                     pc += 2;
