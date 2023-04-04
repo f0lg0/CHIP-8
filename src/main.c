@@ -10,7 +10,7 @@ extern int should_quit;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        puts("usage: emulator rom.ch8");
+        error("usage: emulator rom.ch8");
         return 1;
     }
 
@@ -21,13 +21,13 @@ int main(int argc, char** argv) {
     char* rom_filename = argv[1];
     printf("[PENDING] Loading rom %s...\n", rom_filename);
 
-    int status = load_rom(rom_filename);
-
-    if (status == -1) {
-        puts("[FAILED] fread() failure: the return value was not equal to the rom file size.");
-        return 1;
-    } else if (status != 0) {
-        perror("Error while loading rom");
+    int error = load_rom(rom_filename);
+    if(error) {
+        if (error == -1) {
+            error("[FAILED] fread() failure: the return value was not equal to the rom file size.");
+        } else if (error) {
+            error("Error while loading rom");
+        }
         return 1;
     }
 

@@ -19,4 +19,6 @@ void init_cpu(void);
 int load_rom(char* filename);
 void emulate_cycle(void);
 
+#define error(...) fprintf(stderr, __VA_ARGS__) 
+
 #endif
