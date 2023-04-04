@@ -1,4 +1,4 @@
-#include "inc/peripherals.h"
+#include "peripherals.h"
 
 #include <SDL2/SDL.h>
 

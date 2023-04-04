@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "inc/chip8.h"
-#include "inc/peripherals.h"
+#include "chip8.h"
+#include "peripherals.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {
