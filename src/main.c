@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     if(error) {
         if (error == -1) {
             error("[FAILED] fread() failure: the return value was not equal to the rom file size.");
-        } else if (error) {
+        } else {
             error("Error while loading rom");
         }
         return 1;
