@@ -1,4 +1,4 @@
-#include "inc/chip8.h"
+#include "chip8.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -135,7 +135,6 @@ void init_cpu(void) {
     memcpy(memory, fontset, sizeof(fontset));
 }
 
-
 /**
  * load_rom: load the provided rom to memory
  * @param filename The rom filename
@@ -151,12 +150,12 @@ int load_rom(char* filename) {
     size_t fsize = st.st_size;
 
     size_t bytes_read = fread(memory + 0x200, 1, sizeof(memory) - 0x200, fp);
+    
+    fclose(fp);
 
     if (bytes_read != fsize) {
         return -1;
     }
-   
-    fclose(fp);
 
     return 0;
 }
@@ -636,7 +635,7 @@ void emulate_cycle(void) {
     if (dt > 0) dt -= 1;
     if (st > 0) {
         sound_flag = 1;
-        printf("BEEP\n");
+        puts("BEEP");
         st -= 1;
     }
 }

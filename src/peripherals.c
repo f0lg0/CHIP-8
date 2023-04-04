@@ -1,4 +1,4 @@
-#include "inc/peripherals.h"
+#include "peripherals.h"
 
 #include <SDL2/SDL.h>
 
@@ -23,7 +23,7 @@ SDL_Scancode keymappings[16] = {
     SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D, SDL_SCANCODE_F,
     SDL_SCANCODE_Z, SDL_SCANCODE_X, SDL_SCANCODE_C, SDL_SCANCODE_V};
 
-int QUIT = 0;
+int should_quit = 0;
 
 /**
  * init_display: initialize SDL display
@@ -86,11 +86,11 @@ void sdl_ehandler(unsigned char* keypad) {
 
         switch (event.type) {
             case SDL_QUIT:
-                QUIT = 1;
+                should_quit = 1;
                 break;
             default:
                 if (state[SDL_SCANCODE_ESCAPE]) {
-                    QUIT = 1;
+                    should_quit = 1;
                 }
 
                 // updating the keypad with the current state
@@ -102,13 +102,6 @@ void sdl_ehandler(unsigned char* keypad) {
         }
     }
 }
-
-/**
- * should_quit: return QUIT status
- * @param void
- * @return QUIT flag
- */
-int should_quit(void) { return QUIT; }
 
 /**
  * stop_display: destroy SDL window and quit

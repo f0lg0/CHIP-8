@@ -4,49 +4,47 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "inc/chip8.h"
-#include "inc/peripherals.h"
+#include "chip8.h"
+#include "peripherals.h"
+extern int should_quit;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        printf("usage: emulator rom.ch8\n");
+        error("usage: emulator rom.ch8");
         return 1;
     }
 
-    printf("[PENDING] Initializing CHIP-8 arch...\n");
+    puts("[PENDING] Initializing CHIP-8 arch...");
     init_cpu();
-    printf("[OK] Done!\n");
+    puts("[OK] Done!");
 
     char* rom_filename = argv[1];
     printf("[PENDING] Loading rom %s...\n", rom_filename);
 
-    int status = load_rom(rom_filename);
-
-    if (status == -1) {
-        printf("[FAILED] fread() failure: the return value was not equal to the rom file size.\n");
-        return 1;
-    } else if (status != 0) {
-        perror("Error while loading rom");
+    int error = load_rom(rom_filename);
+    if(error) {
+        if (error == -1) {
+            error("[FAILED] fread() failure: the return value was not equal to the rom file size.");
+        } else {
+            perror("Error while loading rom");
+        }
         return 1;
     }
 
-    printf("[OK] Rom loaded successfully!\n");
+    puts("[OK] Rom loaded successfully!");
 
     init_display();
-    printf("[OK] Display successfully initialized.\n");
+    puts("[OK] Display successfully initialized.");
 
-    while (1) {
+    while (!should_quit) {
         emulate_cycle();
         sdl_ehandler(keypad);
-
-        if (should_quit()) {
-            break;
-        }
 
         if (draw_flag) {
             draw(display);
         }
 
+        //delay to emulate chip-8's clock speed.
         usleep(1500);
     }
 
