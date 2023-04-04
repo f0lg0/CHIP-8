@@ -36,13 +36,9 @@ int main(int argc, char** argv) {
     init_display();
     puts("[OK] Display successfully initialized.");
 
-    while (1) {
+    while (!should_quit) {
         emulate_cycle();
         sdl_ehandler(keypad);
-
-        if (should_quit) {
-            break;
-        }
 
         if (draw_flag) {
             draw(display);
